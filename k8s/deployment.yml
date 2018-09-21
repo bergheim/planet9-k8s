@@ -1,0 +1,21 @@
+# vim: set ts=2 expandtab!:
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: planet9-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: planet9-deployment
+  template:
+    metadata:
+      labels:
+        name: planet9-deployment
+    spec:
+      containers:
+      - name: planet9-deployment
+        image: gcr.io/planet9-k8s/planet9:test2
+        imagePullPolicy: IfNotPresent
+        ports:
+          - containerPort: 8080

@@ -1,0 +1,15 @@
+# vim: set ts=2 expandtab!:
+apiVersion: v1
+kind: Service
+metadata:
+  name: planet9-service
+  labels:
+    app: planet9-service
+spec:
+  selector:
+    app: planet9-service
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 8080
+  type: LoadBalancer
