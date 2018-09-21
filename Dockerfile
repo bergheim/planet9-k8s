@@ -1,14 +1,12 @@
-# The Dockerfile defines the image's environment
-# Import Python runtime and set up working directory
-FROM python:2.7-slim
-WORKDIR /app
-ADD . /app
+FROM alpine:latest
+RUN apk upgrade --update
+RUN apk update && apk add --no-cache libstdc++ libgcc
 
-# Install any necessary dependencies
-RUN pip install -r requirements.txt
+WORKDIR /usr/src/app
 
-# Open port 80 for serving the webpage
-EXPOSE 80
+COPY planet9-alpine .
+COPY config .
 
-# Run app.py when the container launches
-CMD ["python", "app.py"]
+EXPOSE 8080
+
+ENTRYPOINT [ "./planet9-alpine" ]
