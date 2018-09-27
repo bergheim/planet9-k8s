@@ -8,14 +8,9 @@ properties:
     type: string
     x-google-marketplace:
       type: NAMESPACE
-  IMAGE_ELASTICSEARCH:
+  IMAGE_PLANET9:
     type: string
     default: $REGISTRY:$TAG
-    x-google-marketplace:
-      type: IMAGE
-  IMAGE_INIT:
-    type: string
-    default: $REGISTRY/ubuntu16_04:$TAG
     x-google-marketplace:
       type: IMAGE
   REPLICAS:
@@ -28,6 +23,5 @@ properties:
 required:
 - APP_INSTANCE_NAME
 - NAMESPACE
-- IMAGE_ELASTICSEARCH
-- IMAGE_INIT
+- IMAGE_PLANET9
 - REPLICAS
