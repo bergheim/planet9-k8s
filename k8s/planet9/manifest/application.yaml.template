@@ -15,10 +15,6 @@ spec:
     version: '1.0'
     description: |-
       Planet9 is a low code platform. TODO: get this description from marketing.
-
-      # Support
-      Google does not offer support for this solution. However, community support is available on
-      TODO: get this description from marketing.
     maintainers:
     - name: Google Click to Deploy
       url: https://cloud.google.com/solutions/#click-to-deploy
