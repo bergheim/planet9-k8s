@@ -20,6 +20,10 @@ ifdef IMAGE_PLANET9
   IMAGE_PLANET9_FIELD = , "IMAGE_PLANET9": "$(IMAGE_PLANET9)"
 endif
 
+ifdef IMAGE_POSTGRESQL
+  IMAGE_POSTGRESQL_FIELD = , "IMAGE_POSTGRESQL": "$(IMAGE_POSTGRESQL)"
+endif
+
 APP_PARAMETERS ?= { \
   "APP_INSTANCE_NAME": "$(NAME)", \
   "NAMESPACE": "$(NAMESPACE)" \
@@ -30,7 +34,8 @@ APP_TEST_PARAMETERS ?= {}
 
 
 app/build:: .build/planet9/deployer \
-            .build/planet9/planet9
+            .build/planet9/planet9 \
+            .build/planet9/postgresql
 
 .build/planet9: | .build
 	mkdir -p "$@"
@@ -59,4 +64,13 @@ app/build:: .build/planet9/deployer \
 	docker tag gcr.io/planet9-k8s/planet9:$(TAG) \
 	    "$(REGISTRY)/planet9:$(TAG)"
 	docker push "$(REGISTRY)/planet9:$(TAG)"
+	@touch "$@"
+
+.build/planet9/postgresql: .build/var/REGISTRY \
+                           .build/var/TAG \
+                           | .build/planet9
+	docker pull launcher.gcr.io/google/postgresql9:latest
+	docker tag launcher.gcr.io/google/postgresql9:latest \
+	    "$(REGISTRY)/planet9/postgresql:$(TAG)"
+	docker push "$(REGISTRY)/planet9/postgresql:$(TAG)"
 	@touch "$@"
