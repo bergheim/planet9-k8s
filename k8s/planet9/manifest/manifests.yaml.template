@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/name: $APP_INSTANCE_NAME
     app.kubernetes.io/component: planet9
 spec:
-  replicas: 1
+  replicas: $REPLICAS
   selector:
     matchLabels: *Planet9DeploymentLabels
   template:
