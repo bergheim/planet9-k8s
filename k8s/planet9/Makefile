@@ -32,6 +32,9 @@ APP_TEST_PARAMETERS ?= {}
 app/build:: .build/planet9/deployer \
             .build/planet9/planet9
 
+.build/planet9: | .build
+	mkdir -p "$@"
+
 .build/planet9/deployer: deployer/* \
                                manifest/* \
                                schema.yaml \
