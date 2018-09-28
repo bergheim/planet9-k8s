@@ -32,11 +32,9 @@ spec:
         --namespace "$NAMESPACE" \
         --patch '{"spec": {"type": "LoadBalancer"}}'
       ```
-
         # Access Planet9
 
         Get the external IP of the Planet9 service:
-
       ```
       SERVICE_IP=$(kubectl get service/$APP_INSTANCE_NAME-planet9-service \
         --namespace $NAMESPACE \
