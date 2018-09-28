@@ -1,10 +1,8 @@
 # Overview
 
-Elasticsearch is an open-source search engine that provides a distributed,
-multitenant-capable full-text search engine with an HTTP web interface and
-schema-free JSON documents.
+Planet9 is TODO
 
-[Learn more](https://www.elastic.co/).
+[Learn more](https://www.neptune-software.com/).
 
 ## About Google Click to Deploy
 
@@ -14,9 +12,9 @@ Popular open stacks on Kubernetes packaged by Google.
 
 ## Quick install with Google Cloud Marketplace
 
-Get up and running with a few clicks! Install this Elasticsearch app to a
+Get up and running with a few clicks! Install Planet9 to a
 Google Kubernetes Engine cluster using Google Cloud Marketplace. Follow the
-[on-screen instructions](https://console.cloud.google.com/marketplace/details/google/elasticsearch).
+[on-screen instructions](https://console.cloud.google.com/marketplace/details/google/planet9).
 
 ## Command line instructions
 
@@ -41,7 +39,7 @@ gcloud auth configure-docker
 Create a new cluster from the command line:
 
 ```shell
-export CLUSTER=elasticsearch-cluster
+export CLUSTER=planet9-cluster
 export ZONE=us-west1-a
 
 gcloud container clusters create "$CLUSTER" --zone "$ZONE"
@@ -58,7 +56,7 @@ gcloud container clusters get-credentials "$CLUSTER" --zone "$ZONE"
 Clone this repo and the associated tools repo:
 
 ```shell
-git clone --recursive https://github.com/GoogleCloudPlatform/click-to-deploy.git
+git clone --recursive https://github.com/bergheim/planet9-k8s
 ```
 
 #### Install the Application resource definition
@@ -69,7 +67,7 @@ such as Services, Deployments, and so on, that you can manage as a group.
 To set up your cluster to understand Application resources, run the following command:
 
 ```shell
-kubectl apply -f click-to-deploy/k8s/vendor/marketplace-tools/crd/*
+kubectl apply -f k8s/vendor/marketplace-tools/crd/*
 ```
 
 You need to run this command once.
@@ -80,10 +78,10 @@ The Application resource is defined by the
 
 ### Install the Application
 
-Navigate to the `elasticsearch` directory:
+Navigate to the `planet9` directory:
 
 ```shell
-cd click-to-deploy/k8s/elasticsearch
+cd k8s/planet9
 ```
 
 #### Configure the app with environment variables
@@ -93,11 +91,11 @@ Choose an instance name and
 for the app. In most cases, you can use the `default` namespace.
 
 ```shell
-export APP_INSTANCE_NAME=elasticsearch-1
+export APP_INSTANCE_NAME=planet9-1
 export NAMESPACE=default
 ```
 
-Specify the number of replicas for the Elasticsearch cluster:
+Specify the number of replicas for the Planet9 cluster:
 
 ```shell
 export REPLICAS=2
@@ -106,7 +104,7 @@ export REPLICAS=2
 Configure the container images:
 
 ```shell
-export IMAGE_ELASTICSEARCH="marketplace.gcr.io/google/elasticsearch:latest"
+export IMAGE_PLANET9="gcr.io/planet9-k8s/planet9:latest"
 export IMAGE_INIT="marketplace.gcr.io/google/elasticsearch/ubuntu16_04:latest"
 ```
 
@@ -119,7 +117,7 @@ until you are ready to upgrade. To get the digest for the image, use the
 following script:
 
 ```shell
-for i in "IMAGE_ELASTICSEARCH" "IMAGE_INIT"; do
+for i in "IMAGE_PLANET9" "IMAGE_INIT"; do
   repo=$(echo ${!i} | cut -d: -f1);
   digest=$(docker pull ${!i} | sed -n -e 's/Digest: //p');
   export $i="$repo@$digest";
@@ -142,7 +140,7 @@ expanded manifest file for future updates to the application.
 
 ```shell
 awk 'BEGINFILE {print "---"}{print}' manifest/* \
-  | envsubst '$APP_INSTANCE_NAME $NAMESPACE $IMAGE_ELASTICSEARCH $IMAGE_INIT $REPLICAS' \
+  | envsubst '$APP_INSTANCE_NAME $NAMESPACE $IMAGE_PLANET9 $IMAGE_INIT $REPLICAS' \
   > "${APP_INSTANCE_NAME}_manifest.yaml"
 ```
 
@@ -169,34 +167,34 @@ echo "https://console.cloud.google.com/kubernetes/application/${ZONE}/${CLUSTER}
 
 To view the app, open the URL in your browser.
 
-### (Optional) Expose Elasticsearch service externally
+### (Optional) Expose the Planet9 service externally
 
 By default, the application does not have an external IP. To create an external
 IP address, run the following command:
 
 ```
-kubectl patch svc "$APP_INSTANCE_NAME-elasticsearch-svc" \
+kubectl patch svc "$APP_INSTANCE_NAME-planet9-service" \
   --namespace "$NAMESPACE" \
   --patch '{"spec": {"type": "LoadBalancer"}}'
 ```
 
 It might take some time for the external IP address to be created.
 
-# Get the Elasticsearch URL
+# Get the Planet9 URL
 
-If you run your Elasticsearch cluster behind a LoadBalancer service, use the
+If you run your Planet9 cluster behind a LoadBalancer service, use the
 following command to get the IP address. You can use the IP address to run
 administrative operations using the REST API:
 
 ```
-SERVICE_IP=$(kubectl get svc $APP_INSTANCE_NAME-elasticsearch-svc \
+SERVICE_IP=$(kubectl get svc $APP_INSTANCE_NAME-planet9-service \
   --namespace $NAMESPACE \
   --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
-ELASTIC_URL="http://${SERVICE_IP}:9200"
+PLANET9_URL="http://${SERVICE_IP}:9200"
 ```
 
-If you haven't exposed your Elasticsearch service externally, use a local proxy to access the service. In a separate terminal, run the following command:
+If you haven't exposed your Planet9 service externally, use a local proxy to access the service. In a separate terminal, run the following command:
 
 ```shell
 # select a local port as the proxy
@@ -209,34 +207,29 @@ In your main terminal, run the following commands:
 ```shell
 KUBE_PROXY_PORT=8080
 PROXY_BASE_URL=http://localhost:$KUBE_PROXY_PORT/api/v1/proxy
-ELASTIC_URL=$PROXY_BASE_URL/namespaces/$NAMESPACE/services/$APP_INSTANCE_NAME-elasticsearch-svc:http
+PLANET9_URL=$PROXY_BASE_URL/namespaces/$NAMESPACE/services/$APP_INSTANCE_NAME-planet9-service:http
 ```
 
-In both cases, the `ELASTIC_URL` environment variable points to your
-Elasticsearch base URL. Verify the variable using `curl`:
+In both cases, the `PLANET9_URL` environment variable points to your
+Planet9 base URL. Verify the variable using `curl`:
 
 ```shell
-curl "${ELASTIC_URL}"
+curl "${PLANET9_URL}"
 ```
 
-In the response, you should see a message including Elasticsearch's tagline:
-
-```shell
-"tagline" : "You Know, for Search"
-```
+In the response, you should get the initial HTML for the login screen for Planet9:
 
 ### Scale the cluster
 
 Scale the number of master node replicas by the following command:
 
 ```
-kubectl scale statefulsets "$APP_INSTANCE_NAME-elasticsearch" \
+kubectl scale deployment "$APP_INSTANCE_NAME-planet9" \
   --namespace "$NAMESPACE" --replicas=<new-replicas>
 ```
 
-By default, there are 2 replicas to satisfy the minimum master quorum.
-To increase resilience, it is recommended to scale the number of replicas
-to at least 3.
+By default, there are 3 replicas set up. Increase the number of replicas as you
+need more power.
 
 For more information about scaling StatefulSets, see the
 [Kubernetes documentation](https://kubernetes.io/docs/tasks/run-application/scale-stateful-set/#kubectl-scale).
