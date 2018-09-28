@@ -21,13 +21,13 @@ spec:
         env:
         - name: "DB_TYPE"
           value: "postgresql"
-        - name: "DB_HOST"
+        - name: "DB_PSQL_HOST"
           value: "$APP_INSTANCE_NAME-postgresql-svc"
-        - name: "DB_PORT"
+        - name: "DB_PSQL_PORT"
           value: "5432"
-        - name: "DB_USER"
+        - name: "DB_PSQL_USER"
           value: "postgres"
-        - name: "DB_PASWORD"
+        - name: "DB_PSQL_PASWORD"
           valueFrom:
             secretKeyRef:
               name: $APP_INSTANCE_NAME-secret
@@ -62,18 +62,18 @@ spec:
         env:
         - name: "DB_TYPE"
           value: "postgresql"
-        - name: "DB_HOST"
+        - name: "DB_PSQL_HOST"
           value: "$APP_INSTANCE_NAME-postgresql-svc"
-        - name: "DB_PORT"
+        - name: "DB_PSQL_PORT"
           value: "5432"
-        - name: "DB_USER"
+        - name: "DB_PSQL_USER"
           value: "postgres"
-        - name: "DB_PASWORD"
+        - name: "DB_PSQL_PASWORD"
           valueFrom:
             secretKeyRef:
               name: $APP_INSTANCE_NAME-secret
               key: psqlPassword
-        - name: "ADMIN_PASSWORD"
+        - name: "INITIAL_ADMIN_PASSWORD"
           valueFrom:
             secretKeyRef:
               name: $APP_INSTANCE_NAME-secret
