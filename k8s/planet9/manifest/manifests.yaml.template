@@ -53,7 +53,7 @@ spec:
           value: "5432"
         - name: "DB_PSQL_USER"
           value: "postgres"
-        - name: "DB_PSQL_PASWORD"
+        - name: "DB_PSQL_PASSWORD"
           valueFrom:
             secretKeyRef:
               name: $APP_INSTANCE_NAME-secret
@@ -108,7 +108,7 @@ spec:
           value: "5432"
         - name: "DB_PSQL_USER"
           value: "postgres"
-        - name: "DB_PSQL_PASWORD"
+        - name: "DB_PSQL_PASSWORD"
           valueFrom:
             secretKeyRef:
               name: $APP_INSTANCE_NAME-secret
