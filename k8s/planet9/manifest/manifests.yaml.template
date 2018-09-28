@@ -16,7 +16,6 @@ spec:
       containers:
       - name: planet9
         image: $IMAGE_PLANET9
-        imagePullPolicy: Always # TODO: or IfNotPresent?
         ports:
         - containerPort: 8080
         # TODO: make this work
