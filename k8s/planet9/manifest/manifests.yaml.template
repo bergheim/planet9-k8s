@@ -13,6 +13,32 @@ spec:
     metadata:
       labels: *Planet9DeploymentLabels
     spec:
+      initContainers:
+      - name: planet9-init
+        image: $IMAGE_POSTGRESQL
+        env:
+        - name: "PGPASSWORD"
+          valueFrom:
+            secretKeyRef:
+              name: $APP_INSTANCE_NAME-secret
+              key: psqlPassword
+        - name: "PGUSER"
+          value: "postgres"
+        - name: "PGHOST"
+          value: "$APP_INSTANCE_NAME-postgresql-svc"
+        command: ["/bin/bash", "-c"]
+        args:
+          - echo starting;
+            while ! psql Planet9 -c "SELECT COUNT(*) FROM planet9_install_log"; do
+              echo "Waiting for the db";
+              sleep 5;
+            done;
+            echo "Checking if Planet9 db is initialized";
+            while [[ $(psql Planet9 -t -A -c "SELECT COUNT(*) FROM planet9_install_log") -eq "0" ]]; do
+              echo "Waiting for Planet9 to initialize";
+              sleep 5;
+            done;
+            echo done;
       containers:
       - name: planet9
         image: $IMAGE_PLANET9
@@ -55,10 +81,24 @@ metadata:
 spec:
   template:
     spec:
+      initContainers:
+      - name: planet9-init
+        image: $IMAGE_POSTGRESQL
+        env:
+        - name: "PGHOST"
+          value: "$APP_INSTANCE_NAME-postgresql-svc"
+        command: ["/bin/bash", "-c"]
+        args:
+          - echo starting;
+            while ! pg_isready -q; do
+              echo "The job is waiting for the db";
+              sleep 5;
+            done;
+            echo done;
       containers:
       - name: planet9-job
         image: $IMAGE_PLANET9
-        command: ["./planet9-linux",  "--help"]
+        command: ["./planet9-linux",  "--forceUpgrade"]
         env:
         - name: "DB_TYPE"
           value: "postgresql"
@@ -124,6 +164,8 @@ spec:
         env:
         - name: "PGDATA"
           value: "/var/lib/postgresql/data/pgdata"
+        - name: "POSTGRES_DB"
+          value: "Planet9"
         - name: "POSTGRES_PASSWORD"
           valueFrom:
             secretKeyRef:
