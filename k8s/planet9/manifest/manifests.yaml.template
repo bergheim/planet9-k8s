@@ -137,7 +137,7 @@ spec:
     protocol: TCP
     port: 80
     targetPort: 8080
-  type: LoadBalancer
+  type: ClusterIP
 ---
 kind: StatefulSet
 apiVersion: apps/v1beta2
