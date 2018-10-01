@@ -21,8 +21,12 @@ spec:
     notes: |-
       # Expose the Planet9 service
 
-      By default, the service does not have an external IP. Run the
-      following command to expose an external IP:
+      ## Using the command line
+
+      By default, the service does not have an external IP. Make sure you have
+      [kubectl
+      installed](https://kubernetes.io/docs/tasks/tools/install-kubectl/), and
+      run the following command to expose an external IP:
 
       ```
       kubectl patch service/"$APP_INSTANCE_NAME-planet9-service" \
@@ -33,7 +37,7 @@ spec:
       Alternatively, you can forward the port to your local machine:
       use `kubectl port-forward` and access the UI from your local machine.
 
-      Run the following command in background:
+      Run the following command:
 
       ```
       kubectl port-forward -n $NAMESPACE \
@@ -42,9 +46,20 @@ spec:
 
       Open Planet9 in your web browser with `http://localhost:8080/`.
 
-        # Access Planet9
+      ## Using the Google Console
 
-        Get the external IP of the Planet9 service:
+      1. On your project, navigate to `Kubernetes Engine` -> `Services`
+      2. Click on the installed service
+      3. Scroll down to the bottom, click `Port forwarding`
+      4. Click `Run in Cloud Shell`, enable it if you got the question, and
+      then execute the command (hit enter)
+      5. To the right on the bar over the shell, click the `Web preview` icon
+      and then `Preview on port 8080` (alternatively there should now be a
+      button to the right of `Port forwarding` which says `Open in web preview`
+
+      # Access Planet9
+
+      Get the external IP of the Planet9 service:
       ```
       SERVICE_IP=$(kubectl get service/$APP_INSTANCE_NAME-planet9-service \
         --namespace $NAMESPACE \
@@ -61,13 +76,31 @@ spec:
       StatefulSet details screen) or the following command:
 
       ```
-      kubectl scale statefulsets "$APP_INSTANCE_NAME-planet9" \
+      kubectl scale "$APP_INSTANCE_NAME-planet9" \
         --namespace "$NAMESPACE" --replicas=<new-replicas>
       ```
 
-      By default, there are 2 replicas.
-      To increase resilience, it is recommended to scale the number of replicas
-      to at least 3.
+      By default, there are 1 replica. To increase performance, you can increase
+      this number.
+
+      # Setting up SSL
+
+      By default, Planet9 does not expose its IP externally. This is because a
+      certificate is needed to set up a proper HTTPS connection.
+
+      To set this up, you would first start Planet9 normally, then forward the
+      port to your local machine (or use the web interface) as described above.
+      You can now log in to Planet9, and set up the certificates in Planet9 as
+      described TODO HERE.
+
+      Once this is done, remove the HTTP port and add the HTTPS port:
+
+      ```
+      kubectl patch service/"$APP_INSTANCE_NAME-planet9-service" \
+        --namespace "$NAMESPACE" \
+        --patch '{"spec": {"ports": [{"name": "https","port
+        ": 443, "targetPort": 8081}]}'
+      ```
     info:
     - name: Forward Planet9 port locally
       value: kubectl port-forward --namespace ${NAMESPACE} ${APP_INSTANCE_NAME}-planet9-0 8080
