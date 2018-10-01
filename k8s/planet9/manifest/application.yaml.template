@@ -28,7 +28,7 @@ spec:
       installed](https://kubernetes.io/docs/tasks/tools/install-kubectl/), and
       run the following command to expose an external IP:
 
-      ```
+      ```shell
       kubectl patch service/"$APP_INSTANCE_NAME-planet9-service" \
         --namespace "$NAMESPACE" \
         --patch '{"spec": {"type": "LoadBalancer"}}'
@@ -39,7 +39,7 @@ spec:
 
       Run the following command:
 
-      ```
+      ```shell
       kubectl port-forward -n $NAMESPACE \
         svc/$APP_INSTANCE_NAME-planet9-service 8080
       ```
@@ -60,7 +60,8 @@ spec:
       # Access Planet9
 
       Get the external IP of the Planet9 service:
-      ```
+
+      ```shell
       SERVICE_IP=$(kubectl get service/$APP_INSTANCE_NAME-planet9-service \
         --namespace $NAMESPACE \
         --output jsonpath='{.status.loadBalancer.ingress[0].ip}')
@@ -75,7 +76,7 @@ spec:
       To scale the cluster, use either a GKE UI (use the Scale option in the
       StatefulSet details screen) or the following command:
 
-      ```
+      ```shell
       kubectl scale "$APP_INSTANCE_NAME-planet9" \
         --namespace "$NAMESPACE" --replicas=<new-replicas>
       ```
@@ -95,7 +96,7 @@ spec:
 
       Once this is done, remove the HTTP port and add the HTTPS port:
 
-      ```
+      ```shell
       kubectl patch service/"$APP_INSTANCE_NAME-planet9-service" \
         --namespace "$NAMESPACE" \
         --patch '{"spec": {"ports": [{"name": "https","port
