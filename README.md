@@ -1,6 +1,8 @@
 # Overview
 
-Planet9 is TODO
+Planet9 is a low-code, rapid application development software that unifies the
+end-user experience and app development to integrate with any cloud, any backend
+and any architecture across mobile, desktop and offline environments.
 
 [Learn more](https://www.neptune-software.com/).
 
@@ -67,6 +69,7 @@ such as Services, Deployments, and so on, that you can manage as a group.
 To set up your cluster to understand Application resources, run the following command:
 
 ```shell
+make
 kubectl apply -f k8s/vendor/marketplace-tools/crd/*
 ```
 
@@ -88,7 +91,8 @@ cd k8s/planet9
 
 Choose an instance name and
 [namespace](https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/)
-for the app. In most cases, you can use the `default` namespace.
+for the app. The default namespace is simply `default`, but we recommend you to
+change it to something else.
 
 ```shell
 export APP_INSTANCE_NAME=planet9-1
@@ -104,8 +108,8 @@ export REPLICAS=2
 Configure the container images:
 
 ```shell
-export IMAGE_PLANET9="gcr.io/planet9-k8s/planet9:latest"
-export IMAGE_INIT="marketplace.gcr.io/google/elasticsearch/ubuntu16_04:latest"
+export IMAGE_PLANET9="gcr.io/neptune-software/planet9:latest"
+export IMAGE_POSTGRESQL="launcher.gcr.io/google/postgresql9:latest"
 ```
 
 The images above are referenced by
@@ -117,7 +121,7 @@ until you are ready to upgrade. To get the digest for the image, use the
 following script:
 
 ```shell
-for i in "IMAGE_PLANET9" "IMAGE_INIT"; do
+for i in "IMAGE_PLANET9" "IMAGE_POSTGRESQL"; do
   repo=$(echo ${!i} | cut -d: -f1);
   digest=$(docker pull ${!i} | sed -n -e 's/Digest: //p');
   export $i="$repo@$digest";
@@ -140,7 +144,7 @@ expanded manifest file for future updates to the application.
 
 ```shell
 awk 'BEGINFILE {print "---"}{print}' manifest/* \
-  | envsubst '$APP_INSTANCE_NAME $NAMESPACE $IMAGE_PLANET9 $IMAGE_INIT $REPLICAS' \
+  | envsubst '$APP_INSTANCE_NAME $NAMESPACE $IMAGE_PLANET9 $IMAGE_POSTGRESQL $REPLICAS' \
   > "${APP_INSTANCE_NAME}_manifest.yaml"
 ```
 
@@ -151,11 +155,6 @@ Use `kubectl` to apply the manifest to your Kubernetes cluster:
 ```shell
 kubectl apply -f "${APP_INSTANCE_NAME}_manifest.yaml" --namespace "${NAMESPACE}"
 ```
-
-> NOTE: Elasticsearch Pods have an [Init Container](https://kubernetes.io/docs/concepts/workloads/pods/init-containers/)
-  that sets the system property of `vm.max_map_count` set at least to 262144
-  on the hosting node. For background information, see the
-  [Elasticsearch documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/vm-max-map-count.html).
 
 #### View the app in the Google Cloud Console
 
@@ -228,147 +227,20 @@ kubectl scale deployment "$APP_INSTANCE_NAME-planet9" \
   --namespace "$NAMESPACE" --replicas=<new-replicas>
 ```
 
-By default, there are 3 replicas set up. Increase the number of replicas as you
+By default, there are 1 replica set up. Increase the number of replicas as you
 need more power.
-
-For more information about scaling StatefulSets, see the
-[Kubernetes documentation](https://kubernetes.io/docs/tasks/run-application/scale-stateful-set/#kubectl-scale).
-
-# Snapshot and restore
-
-The following steps are based on the Elasticsearch documentation about
-[Snapshot And Restore](https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-snapshots.html).
-
-These steps use NFS storage on top of a StatefulSet in Kubernetes. You could
-use other NFS providers, or one of the repository plugins supported by Elasticsearch.
-
-## Snapshot
-
-### Create a backup infrastructure
-
-To create a NFS server on Kubernetes and create a shared disk for the
-backup, run [`scripts/create-backup-infra.sh`](scripts/create-backup-infra.sh):
-
-```shell
-scripts/create-backup-infra.sh \
-  --app elasticsearch-1 \
-  --namespace default \
-  --disk-size 10Gi \
-  --backup-claim elasticsearch-1-backup
-```
-
-### Patch the Elasticsearch StatefulSet to mount a backup disk
-
-Your Elasticsearch StatefulSet needs to be patched to mount the backup disk.
-To run the patch and automatically perform a rolling update on the StatefulSet,
-run [`scripts/patch-sts-for-backup.sh`](scripts/patch-sts-for-backup.sh).
-
-```shell
-scripts/patch-sts-for-backup.sh \
-  --app elasticsearch-1 \
-  --namespace default \
-  --backup-claim elasticsearch-1-backup
-```
-
-### Register the snapshot repository in the Elasticsearch cluster
-
-[Get the URL for the Elasticsearch API](#get-the-elasticsearch-url). The
-`ELASTIC_URL` points to the Elasticsearch REST API.
-
-To register your new backup repository, run the following command:
-
-```shell
-curl -X PUT "$ELASTIC_URL/_snapshot/es_backup" -H 'Content-Type: application/json' -d '{
-  "type": "fs",
-  "settings": {
-    "location": "/usr/share/elasticsearch/backup"
-  }
-}'
-```
-
-### Create a snapshot
-
-To create a snapshot of data in your indices, call the REST API:
-
-```shell
-curl -X PUT "$ELASTIC_URL/_snapshot/es_backup/snapshot_1?wait_for_completion=true"
-```
-
-## Restore
-
-These steps assume that you have a clean installation of
-Elasticsearch on your cluster, and you want to restore all data from a
-snapshot.
-
-### Patch the Elasticsearch StatefulSet to mount a backup disk
-
-These steps assume that the `ES_BACKUP_CLAIM` environment variable contains
-the name of a Persistent Volume Claim that was used as a snapshot repository
-in Elasticsearch cluster, and that the version of the Claim is
-compatible with the new cluster.
-
-Run the following command to run a rolling update that mounts the disk to all
-the Elasticsearch Pods in your installation:
-
-```shell
-scripts/patch-sts-for-backup.sh \
-  --app elasticsearch-1 \
-  --namespace default \
-  --backup-claim "$ES_BACKUP_CLAIM"
-```
-
-### Register the snapshot repository
-
-Repeat [the steps](#register-the-snapshot-repository-in-elasticsearch-cluster) for registering a snapshot repository for your backup.
-
-After the repository is mounted, list all the available snapshots using
-the following command:
-
-```shell
-curl "$ELASTIC_URL/_snapshot/es_backup/_all"
-```
-
-To restore a snapshot called `snapshot_1`, run the following command:
-
-```shell
-curl -X POST "$ELASTIC_URL/_snapshot/es_backup/snapshot_1/_restore"
-```
 
 # Updating the app
 
-For background information about rolling updates to Elasticsearch, see the
-[Elasticsearch documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/rolling-upgrades.html).
+TODO: should we support this or not? We could say:
+1. Stop P9
+2. Run the upgrade
+3. Start P9
 
-Before starting the update procedure on your cluster, we recommend that you
-back up your installation, to eliminate the risk of losing your data.
-
-## Perform the update on cluster nodes
-
-### Patch the StatefulSet with the new image
-
-Start with assigning the new image to your StatefulSet definition:
-
-```
-IMAGE_ELASTICSEARCH=[NEW_IMAGE_REFERENCE]
-
-kubectl set image statefulset "${APP_INSTANCE_NAME}-elasticsearch" \
-  --namespace $NAMESPACE elasticsearch="${IMAGE_ELASTICSEARCH}"
-```
-
-After this operation, the StatefulSet has a new image configured for the
-containers. However, because of the OnDelete update strategy on the
-StatefulSet, the pods will not automatically restart.
-
-### Run the `upgrade.sh` script to run the rolling update
-
-Make sure that the cluster is healthy before proceeding:
-
-```shell
-curl $ELASTIC_URL/_cluster/health?pretty
-```
-
-Run [`scripts/upgrade.sh`](scripts/upgrade.sh). The script
-takes down and updates one replica at a time.
+Alternatively:
+1. Apply a rolling update
+2. ???
+3. Success!
 
 # Uninstall the Application
 
@@ -376,7 +248,7 @@ takes down and updates one replica at a time.
 
 1. In the GCP Console, open [Kubernetes Applications](https://console.cloud.google.com/kubernetes/application).
 
-1. From the list of applications, click **Elasticsearch**.
+1. From the list of applications, click **Planet9**.
 
 1. On the Application Details page, click **Delete**.
 
@@ -387,7 +259,7 @@ takes down and updates one replica at a time.
 Set your installation name and Kubernetes namespace:
 
 ```shell
-export APP_INSTANCE_NAME=elasticsearch-1
+export APP_INSTANCE_NAME=planet9-1
 export NAMESPACE=default
 ```
 
@@ -407,26 +279,7 @@ kubectl delete -f ${APP_INSTANCE_NAME}_manifest.yaml --namespace $NAMESPACE
 If you don't have the expanded manifest file, delete the resources using types and a label:
 
 ```shell
-kubectl delete application,statefulset,service,configmap \
-  --namespace $NAMESPACE \
-  --selector app.kubernetes.io/name=$APP_INSTANCE_NAME
-```
-
-### Delete the persistent volumes of your installation
-
-By design, the removal of StatefulSets in Kubernetes does not remove
-PersistentVolumeClaims that were attached to their Pods. This prevents your
-installations from accidentally deleting stateful data.
-
-To remove the PersistentVolumeClaims with their attached persistent disks, run
-the following `kubectl` commands:
-
-```shell
-# specify the variables values matching your installation:
-export APP_INSTANCE_NAME=elasticsearch-1
-export NAMESPACE=default
-
-kubectl delete persistentvolumeclaims \
+kubectl delete application,secret,service,deployments,jobs,sts,application \
   --namespace $NAMESPACE \
   --selector app.kubernetes.io/name=$APP_INSTANCE_NAME
 ```
