@@ -10,7 +10,7 @@ TAG ?= 1.0
 $(info ---- TAG = $(TAG))
 
 APP_DEPLOYER_IMAGE ?= $(REGISTRY)/planet9/deployer:$(TAG)
-NAME ?= planet9-1
+APP_INSTANCE_NAME ?= planet9-1
 
 ifdef REPLICAS
   REPLICAS_FIELD = , "REPLICAS": "$(REPLICAS)"
@@ -25,7 +25,7 @@ ifdef IMAGE_POSTGRESQL
 endif
 
 APP_PARAMETERS ?= { \
-  "APP_INSTANCE_NAME": "$(NAME)", \
+  "APP_INSTANCE_NAME": "$(APP_INSTANCE_NAME)", \
   "NAMESPACE": "$(NAMESPACE)" \
   $(REPLICAS_FIELD) \
   $(IMAGE_PLANET9_FIELD) \
