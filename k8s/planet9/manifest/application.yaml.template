@@ -6,21 +6,18 @@ metadata:
   annotations:
     kubernetes-engine.cloud.google.com/icon: >-
       data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAABIAAAASABGyWs+AAAACXZwQWcAAAAQAAAAEABcxq3DAAABuklEQVQ4y6XTv0vVURgG8M/5er16Na8QQQg5iFFgQ2AUUghCNIQQVEPgbA1NLf1caqvoT8i2KFqCAmkNoihcGvo1FBJmIVnU9eb9qt+vp8GU64Vw8N3O4Xme87zv+5zw/c5eDdWDMziCXjRhEk9xG2/qwaFB4AbOI/H/GsPp1UM98CEubkCGUTxvFLiO4+usCQLytCKrzsmqc+JSVQgBDuLeagtd+LqenIj5gjxNtfUMKHbtI2bmP4xb+DGtudwhxgj9CS40eowxk6ep8oFRbX0nZZUZea2qPHRV+67DsmpFWDF/rYDhRoG8Nm/LnmOKXf1mH50V8yDmQenbhPLgFUuz7+W1GaFQ2p+gu+F5YlTcMaD27oG4HDSXy4pbO9SmPko/PdHaM2h5IYPOjSa+YSWYWncTAiFY/PJSqe+UkERLlYrFn3NK3Tu19h6VTj6TtBTgdwHjOFev0VRqU337WNK+3bbhW9LPr4RCi5aeIX9e37X0a1qhvVO0PLHpNa5G+TouNQaJKEsrYhZWnLUESXGNfB8jhX/4y9hdn8YorpBayw1LivACI/VRhhO4ieUNBj+GQ2tON/ud/wLyf7KfZi4CEAAAACV0RVh0Y3JlYXRlLWRhdGUAMjAxMy0xMC0xOFQxMzo1ODo1NCswMDowME8CzXkAAAAldEVYdG1vZGlmeS1kYXRlADIwMTMtMTAtMThUMTM6NTg6NTQrMDA6MDAQs7tNAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAABJRU5ErkJgggAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
-    marketplace.cloud.google.com/deploy-info: '{partner_id: "click-to-deploy-containers", product_id: "planet9", partner_name: "Google Click to Deploy"}'
+    marketplace.cloud.google.com/deploy-info: '{partner_id: "neptune-software", product_id: "planet9", partner_name: "Neptune Software"}'
   labels:
     app.kubernetes.io/name: "$APP_INSTANCE_NAME"
 spec:
   descriptor:
     type: Planet9
-    version: '1.0'
+    version: '1.0.6'
     description: |-
-      Planet9 is a low code platform. TODO: get this description from marketing.
-    maintainers:
-    - name: Google Click to Deploy
-      url: https://cloud.google.com/solutions/#click-to-deploy
+      Low-code, rapid application development software that unifies the end-user experience and app development to integrate with any cloud, any backend and any architecture across mobile, desktop and offline environments.
     links:
-    - description: 'User Guide: Google Click to Deploy TODO'
-      url: https://www.neptune-software.com
+    - description: 'User Guide: Planet9 TODO add link to github repo'
+      url: https://github.com/bergheim/planet9-k8s
     notes: |-
       # Expose the Planet9 service
 
@@ -32,6 +29,19 @@ spec:
         --namespace "$NAMESPACE" \
         --patch '{"spec": {"type": "LoadBalancer"}}'
       ```
+
+      Alternatively, you can forward the port to your local machine:
+      use `kubectl port-forward` and access the UI from your local machine.
+
+      Run the following command in background:
+
+      ```
+      kubectl port-forward -n $NAMESPACE \
+        svc/$APP_INSTANCE_NAME-planet9-service 8080
+      ```
+
+      Open Planet9 in your web browser with `http://localhost:8080/`.
+
         # Access Planet9
 
         Get the external IP of the Planet9 service:
@@ -58,6 +68,20 @@ spec:
       By default, there are 2 replicas.
       To increase resilience, it is recommended to scale the number of replicas
       to at least 3.
+    info:
+    - name: Forward Planet9 port locally
+      value: kubectl port-forward --namespace ${NAMESPACE} ${APP_INSTANCE_NAME}-planet9-0 8080
+    - name: Planet9 UI URL
+      value: http://localhost:8080/
+    - name: Administrator username
+      value: admin
+    - name: Administrator password
+      type: Reference
+      valueFrom:
+        type: SecretKeyRef
+        secretKeyRef:
+          name: $APP_INSTANCE_NAME-secret
+          key: adminPassword
   selector:
     matchLabels:
       app.kubernetes.io/name: "$APP_INSTANCE_NAME"
@@ -70,3 +94,5 @@ spec:
     kind: StatefulSet
   - group: v1
     kind: Secret
+  - group: batch/v1
+    kind: Job
