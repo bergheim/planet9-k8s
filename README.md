@@ -70,10 +70,13 @@ git clone --recursive https://github.com/bergheim/planet9-k8s
 An Application resource is a collection of individual Kubernetes components,
 such as Services, Deployments, and so on, that you can manage as a group.
 
-To set up your cluster to understand Application resources, run the following command:
+To set up your cluster to understand Application resources, enter the directory
+of the repo you just cloned and run the following commands:
 
 ```shell
-make
+git submodule init
+git submodule sync --recursive
+git submodule update --init --recursive
 kubectl apply -f k8s/vendor/marketplace-tools/crd/*
 ```
 
