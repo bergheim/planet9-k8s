@@ -102,20 +102,20 @@ spec:
         --patch '{"spec": {"ports": [{"name": "https","port
         ": 443, "targetPort": 8081}]}'
       ```
-    info:
-    - name: Forward Planet9 port locally
-      value: kubectl port-forward --namespace ${NAMESPACE} ${APP_INSTANCE_NAME}-planet9-0 8080
-    - name: Planet9 UI URL
-      value: http://localhost:8080/
-    - name: Administrator username
-      value: admin
-    - name: Administrator password
-      type: Reference
-      valueFrom:
-        type: SecretKeyRef
-        secretKeyRef:
-          name: $APP_INSTANCE_NAME-secret
-          key: adminPassword
+  info:
+  - name: Forward Planet9 port locally
+    value: POD_NAME="$(kubectl get pods -l "app.kubernetes.io/name=$APP_INSTANCE_NAME,app.kubernetes.io/component=planet9" -o jsonpath='{.items[0].metadata.name}')" kubectl port-forward $POD_NAME 8080 8080
+  - name: Planet9 UI URL
+    value: http://localhost:8080/
+  - name: Administrator username
+    value: admin
+  - name: Administrator password
+    type: Reference
+    valueFrom:
+      type: SecretKeyRef
+      secretKeyRef:
+        name: $APP_INSTANCE_NAME-secret
+        key: adminPassword
   selector:
     matchLabels:
       app.kubernetes.io/name: "$APP_INSTANCE_NAME"
