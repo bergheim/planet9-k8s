@@ -77,7 +77,7 @@ of the repo you just cloned and run the following commands:
 git submodule init
 git submodule sync --recursive
 git submodule update --init --recursive
-kubectl apply -f k8s/vendor/marketplace-tools/crd/*
+kubectl apply -f k8s/vendor/marketplace-tools/crd/
 ```
 
 You need to run this command once.
