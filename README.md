@@ -20,6 +20,10 @@ Google Kubernetes Engine cluster using Google Cloud Marketplace. Follow the
 
 ## Command line instructions
 
+There are two ways to set this up. The first is the manual approach where you
+run all the commands explicitly. The second approach uses a supplied makefile
+which should enable you to publish the image using only a few commands.
+
 ### Prerequisites
 
 #### Set up command-line tools
@@ -166,12 +170,29 @@ echo "https://console.cloud.google.com/kubernetes/application/${ZONE}/${CLUSTER}
 
 To view the app, open the URL in your browser.
 
+### Using the Makefile
+
+After the repository is cloned and gcloud is set up as described above, enter
+the directory and download the support tools:
+
+```shell
+make
+```
+
+Enter the Planet9 config directory:
+
+```shell
+cd k8s/Planet9
+export APP_INSTANCE_NAME=<<projectname>>
+make app/install
+```
+
 ### (Optional) Expose the Planet9 service externally
 
 By default, the application does not have an external IP. To create an external
 IP address, run the following command:
 
-```
+```shell
 kubectl patch svc "$APP_INSTANCE_NAME-planet9-service" \
   --namespace "$NAMESPACE" \
   --patch '{"spec": {"type": "LoadBalancer"}}'
@@ -232,15 +253,9 @@ need more power.
 
 # Updating the app
 
-TODO: should we support this or not? We could say:
-1. Stop P9
+1. Stop Planet9
 2. Run the upgrade
-3. Start P9
-
-Alternatively:
-1. Apply a rolling update
-2. ???
-3. Success!
+3. Start Planet9
 
 # Uninstall the Application
 
