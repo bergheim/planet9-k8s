@@ -26,6 +26,8 @@ spec:
           value: "postgres"
         - name: "PGHOST"
           value: "$APP_INSTANCE_NAME-postgresql-svc"
+        - name: "NODE_ENV"
+          value: "production"
         command: ["/bin/bash", "-c"]
         args:
           - echo starting;
