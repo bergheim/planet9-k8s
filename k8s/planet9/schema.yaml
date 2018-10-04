@@ -22,7 +22,7 @@ properties:
     type: integer
     title: Replicas
     description: The number of Pod replicas
-    default: 1
+    default: 2
     minimum: 1
     maximum: 11
   PLANET9_ADMIN_PASSWORD:
